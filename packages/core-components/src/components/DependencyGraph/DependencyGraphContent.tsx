@@ -439,11 +439,12 @@ export function DependencyGraph<NodeData, EdgeData>(
     });
 
     edges.forEach(e => {
+      const existing = graph.current.edge(e.from, e.to);
       graph.current.setEdge(e.from, e.to, {
         ...e,
         label: e.label,
-        width: 0,
-        height: 0,
+        width: (e.label && existing?.width) || 0,
+        height: (e.label && existing?.height) || 0,
         labelpos: labelPosition,
         labeloffset: labelOffset,
         weight: edgeWeight,
@@ -503,6 +504,26 @@ export function DependencyGraph<NodeData, EdgeData>(
     });
 
     setNodesAndEdges();
+
+    if (settledRef.current) {
+      const hasUnmeasured =
+        graph.current.nodes().some(id => {
+          const n = graph.current.node(id);
+          return n && n.width === 0 && n.height === 0;
+        }) ||
+        graph.current.edges().some(e => {
+          const edge = graph.current.edge(e);
+          return edge && edge.label && edge.width === 0 && edge.height === 0;
+        });
+
+      if (hasUnmeasured) {
+        settledRef.current = false;
+        setSettled(false);
+        measuredLayoutCount.current = 0;
+      }
+      setTransitionsReady(false);
+    }
+
     updateGraph();
 
     return updateGraph.cancel;
@@ -540,6 +561,13 @@ export function DependencyGraph<NodeData, EdgeData>(
     (id: dagre.Edge, edge: Types.DependencyEdge<EdgeData>) => {
       graph.current.setEdge(id, edge);
       updateGraph();
+      if (!settledRef.current && !pendingInitialFlush.current) {
+        pendingInitialFlush.current = true;
+        queueMicrotask(() => {
+          pendingInitialFlush.current = false;
+          updateGraph.flush();
+        });
+      }
       return graph.current;
     },
     [updateGraph],
