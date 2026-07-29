@@ -1,5 +1,11 @@
 # @backstage/create-app
 
+## 0.9.1-next.2
+
+### Patch Changes
+
+- 2828e31: Added a prerequisites check when creating a new app that validates Node.js LTS version and Yarn availability before proceeding, and warns if Python is not found.
+
 ## 0.9.1-next.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @backstage/frontend-app-api
 
+## 0.16.7-next.1
+
+### Patch Changes
+
+- 6497d0f: Respect explicit API reference plugin ownership when resolving conflicting API factories.
+
 ## 0.16.7-next.0
 
 ### Patch Changes
